@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Christmas Hint Game</title>
     <style>
         * {
@@ -19,6 +19,7 @@
             align-items: center;
             min-height: 100vh;
             padding: 10px;
+            touch-action: manipulation;
         }
 
         header {
@@ -121,6 +122,7 @@
             text-transform: uppercase;
             color: #000000;
             transition: all 0.3s ease;
+            touch-action: manipulation;
         }
 
         .tile.filled {
@@ -188,6 +190,7 @@
             justify-content: center;
             padding: 0 12px;
             transition: background-color 0.1s ease;
+            touch-action: manipulation;
         }
 
         .key:hover {
@@ -215,9 +218,9 @@
 
         @media (max-width: 600px) {
             .tile {
-                width: 56px;
-                height: 56px;
-                font-size: 28px;
+                width: 48px;
+                height: 48px;
+                font-size: 24px;
             }
 
             .key {
@@ -229,6 +232,34 @@
 
             .key.wide {
                 min-width: 52px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .tile {
+                width: 42px;
+                height: 42px;
+                font-size: 20px;
+                border: 1px solid #d3d6da;
+            }
+
+            .row {
+                gap: 4px;
+            }
+
+            .board {
+                gap: 4px;
+            }
+
+            .key {
+                min-width: 28px;
+                height: 48px;
+                font-size: 11px;
+                padding: 0 6px;
+            }
+
+            .key.wide {
+                min-width: 48px;
             }
         }
     </style>
