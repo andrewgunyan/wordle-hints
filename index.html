@@ -79,6 +79,23 @@
             color: #000000;
         }
 
+        .play-again-btn {
+            background-color: #6aaa64;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .play-again-btn:hover {
+            background-color: #5a9a54;
+        }
+
         .board {
             display: grid;
             grid-template-rows: repeat(6, 1fr);
@@ -224,6 +241,7 @@
 
     <div class="game-container">
         <div class="message" id="message"></div>
+        <button class="play-again-btn" id="playAgainBtn">Play Again</button>
         <div class="board" id="board"></div>
         <div class="keyboard" id="keyboard"></div>
     </div>
@@ -238,6 +256,31 @@
         let wordLength = 5; // Will be set dynamically based on target word
         let guesses = [];
         let letterStates = {}; // Track letter states for keyboard
+        let allWords = []; // Store all available words
+        let storageKey = ''; // Unique key for localStorage
+
+        // Generate hash from URL parameters for localStorage key
+        function getStorageKey() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedTarget = urlParams.get('target');
+            const presentId = urlParams.get('id') || 'default';
+            return `wordle-hints-${presentId}-${encodedTarget}`;
+        }
+
+        // Get solved hints from localStorage
+        function getSolvedHints() {
+            const stored = localStorage.getItem(storageKey);
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        // Save solved hint to localStorage
+        function saveSolvedHint(word) {
+            const solved = getSolvedHints();
+            if (!solved.includes(word)) {
+                solved.push(word);
+                localStorage.setItem(storageKey, JSON.stringify(solved));
+            }
+        }
 
         // Get target word from URL parameter
         function getTargetWord() {
@@ -253,15 +296,22 @@
                 // Decode base64
                 const decoded = atob(encodedTarget);
                 // Split by comma and filter out empty strings
-                const words = decoded.split(',').map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
+                allWords = decoded.split(',').map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
 
-                if (words.length === 0) {
+                if (allWords.length === 0) {
                     showMessage('No valid words found!');
                     return null;
                 }
 
-                // Pick a random word
-                const randomWord = words[Math.floor(Math.random() * words.length)];
+                // Get solved hints
+                const solvedHints = getSolvedHints();
+
+                // Filter for unsolved hints first
+                const unsolvedWords = allWords.filter(w => !solvedHints.includes(w));
+
+                // Pick from unsolved words if available, otherwise pick from all
+                const wordPool = unsolvedWords.length > 0 ? unsolvedWords : allWords;
+                const randomWord = wordPool[Math.floor(Math.random() * wordPool.length)];
 
                 // Validate word length (4-8 letters)
                 if (randomWord.length < 4 || randomWord.length > 8) {
@@ -303,7 +353,7 @@
             const rows = [
                 ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
                 ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-                ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACK']
+                ['BACK', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER']
             ];
 
             rows.forEach(row => {
@@ -426,6 +476,17 @@
                                 showMessage('Correct! You found your hint!');
                                 gameOver = true;
                                 createConfetti();
+
+                                // Save to localStorage
+                                saveSolvedHint(targetWord);
+
+                                // Check if there are unsolved hints remaining
+                                const solvedHints = getSolvedHints();
+                                const unsolvedCount = allWords.filter(w => !solvedHints.includes(w)).length;
+
+                                if (unsolvedCount > 0) {
+                                    document.getElementById('playAgainBtn').style.display = 'block';
+                                }
                             } else if (isLastGuess) {
                                 showMessage(`Game Over! The word was: ${targetWord}`);
                                 gameOver = true;
@@ -506,6 +567,11 @@
             }
         });
 
+        // Play again button handler
+        document.getElementById('playAgainBtn').addEventListener('click', () => {
+            location.reload();
+        });
+
         // Initialize game
         const urlParams = new URLSearchParams(window.location.search);
         const presentId = urlParams.get('id');
@@ -514,6 +580,9 @@
         if (presentId) {
             document.getElementById('title').textContent = `Present #${presentId}`;
         }
+
+        // Initialize storage key
+        storageKey = getStorageKey();
 
         targetWord = getTargetWord();
         if (targetWord) {

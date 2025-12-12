@@ -58,6 +58,9 @@ btoa("GIFT,TREE,BELLS,SNOWMAN")
 - **Confetti celebration when you guess correctly!**
 - **Customizable title with Present # using the `id` parameter**
 - Helpful subtitle: "Solve the wordle to get a hint about your present"
+- **Progress tracking with localStorage** - solved hints are remembered
+- **Smart hint selection** - unsolved hints are prioritized
+- **Play Again button** - appears when hints remain unsolved
 
 ## Setting Up GitHub Pages
 
@@ -98,3 +101,12 @@ echo -n "WATCH,CLOCK,TIMER" | base64
 
 # ... and so on for all 12 days
 ```
+
+## How Progress Tracking Works
+
+- When a hint is correctly guessed, it's saved to localStorage
+- Each URL (based on `id` and `target` parameters) has its own progress tracking
+- On reload, the game prioritizes unsolved hints
+- If unsolved hints remain, a "Play Again" button appears after winning
+- Your wife can solve multiple hints from the same list until all are found!
+- Progress is stored in the browser, so it persists across sessions
