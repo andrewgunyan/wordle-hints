@@ -192,6 +192,13 @@
             background-color: #c82333;
         }
 
+        .nice-try-message {
+            font-size: 24px;
+            font-weight: 700;
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+
         .board {
             display: grid;
             grid-template-rows: repeat(6, 1fr);
@@ -408,7 +415,10 @@
         </div>
         
         <div class="board" id="board"></div>
-        <button class="try-again-btn" id="tryAgainBtn">Try Again</button>
+        <div id="tryAgainContainer" style="display: none; text-align: center; margin-top: 10px;">
+            <div class="nice-try-message">Nice try!</div>
+            <button class="try-again-btn" id="tryAgainBtn">Try Again</button>
+        </div>
         <div class="keyboard" id="keyboard"></div>
     </div>
 
@@ -715,7 +725,7 @@
                             } else if (isLastGuess) {
                                 showMessage(`Game Over! The word was: ${targetWord}`);
                                 gameOver = true;
-                                document.getElementById('tryAgainBtn').style.display = 'block';  // ADD THIS LINE
+                                document.getElementById('tryAgainContainer').style.display = 'block';  // CHANGE THIS LINE
                             }
                         }, 500);
                     }
