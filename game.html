@@ -175,6 +175,23 @@
             background-color: #5a9a54;
         }
 
+        .try-again-btn {
+            background-color: #dc3545;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .try-again-btn:hover {
+            background-color: #c82333;
+        }
+
         .board {
             display: grid;
             grid-template-rows: repeat(6, 1fr);
@@ -372,7 +389,7 @@
 
     <div class="game-container">
         <div class="message" id="message"></div>
-        <button class="play-again-btn" id="playAgainBtn">Play Again</button>
+        <button class="play-again-btn" id="playAgainBtn">Get Next Hint!</button>
         
         <!-- Progress Section -->
         <div class="progress-container" id="progressContainer">
@@ -391,6 +408,7 @@
         </div>
         
         <div class="board" id="board"></div>
+        <button class="try-again-btn" id="tryAgainBtn">Try Again</button>
         <div class="keyboard" id="keyboard"></div>
     </div>
 
@@ -697,6 +715,7 @@
                             } else if (isLastGuess) {
                                 showMessage(`Game Over! The word was: ${targetWord}`);
                                 gameOver = true;
+                                document.getElementById('tryAgainBtn').style.display = 'block';  // ADD THIS LINE
                             }
                         }, 500);
                     }
@@ -799,6 +818,10 @@
             updateProgressDisplay();
             updateGuessedWordsDisplay();
         }
+
+        document.getElementById('tryAgainBtn').addEventListener('click', () => {
+            location.reload();
+        });
     </script>
 </body>
 </html>
