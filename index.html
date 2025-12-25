@@ -80,6 +80,84 @@
             color: #000000;
         }
 
+        .progress-container {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-text {
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #6aaa64;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .guessed-words-container {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .guessed-words-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .guessed-words-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            min-height: 32px;
+        }
+
+        .guessed-word {
+            padding: 6px 12px;
+            background-color: #6aaa64;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .guessed-word.empty {
+            background-color: #e9ecef;
+            color: #6c757d;
+            font-style: italic;
+            font-weight: normal;
+        }
+
         .play-again-btn {
             background-color: #6aaa64;
             color: #ffffff;
@@ -233,6 +311,15 @@
             .key.wide {
                 min-width: 52px;
             }
+
+            .guessed-words-container {
+                padding: 10px;
+            }
+
+            .guessed-word {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
         }
 
         @media (max-width: 400px) {
@@ -261,6 +348,19 @@
             .key.wide {
                 min-width: 48px;
             }
+
+            .guessed-words-container {
+                padding: 8px;
+            }
+
+            .guessed-word {
+                padding: 3px 6px;
+                font-size: 11px;
+            }
+
+            .progress-text {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -273,6 +373,23 @@
     <div class="game-container">
         <div class="message" id="message"></div>
         <button class="play-again-btn" id="playAgainBtn">Play Again</button>
+        
+        <!-- Progress Section -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-text" id="progressText">Words guessed: 0/0</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <!-- Previously Guessed Words Section -->
+        <div class="guessed-words-container" id="guessedWordsContainer">
+            <div class="guessed-words-title">Previously Guessed Words</div>
+            <div class="guessed-words-list" id="guessedWordsList">
+                <div class="guessed-word empty">No words guessed yet</div>
+            </div>
+        </div>
+        
         <div class="board" id="board"></div>
         <div class="keyboard" id="keyboard"></div>
     </div>
@@ -310,6 +427,65 @@
             if (!solved.includes(word)) {
                 solved.push(word);
                 localStorage.setItem(storageKey, JSON.stringify(solved));
+                updateProgressDisplay();
+                updateGuessedWordsDisplay();
+            }
+        }
+
+        // Update progress display
+        function updateProgressDisplay() {
+            const solvedHints = getSolvedHints();
+            const totalWords = allWords.length;
+            const solvedCount = solvedHints.length;
+            
+            const progressText = document.getElementById('progressText');
+            const progressFill = document.getElementById('progressFill');
+            
+            progressText.textContent = `Words guessed: ${solvedCount}/${totalWords}`;
+            
+            if (totalWords > 0) {
+                const percentage = (solvedCount / totalWords) * 100;
+                progressFill.style.width = `${percentage}%`;
+            } else {
+                progressFill.style.width = '0%';
+            }
+            
+            // Show/hide progress container based on whether there are multiple words
+            const progressContainer = document.getElementById('progressContainer');
+            if (totalWords <= 1) {
+                progressContainer.style.display = 'none';
+            } else {
+                progressContainer.style.display = 'block';
+            }
+        }
+
+        // Update guessed words display
+        function updateGuessedWordsDisplay() {
+            const solvedHints = getSolvedHints();
+            const guessedWordsList = document.getElementById('guessedWordsList');
+            
+            // Clear the list
+            guessedWordsList.innerHTML = '';
+            
+            if (solvedHints.length === 0) {
+                guessedWordsList.innerHTML = '<div class="guessed-word empty">No words guessed yet</div>';
+                return;
+            }
+            
+            // Add each guessed word
+            solvedHints.forEach(word => {
+                const wordElement = document.createElement('div');
+                wordElement.className = 'guessed-word';
+                wordElement.textContent = word;
+                guessedWordsList.appendChild(wordElement);
+            });
+            
+            // Show/hide guessed words container based on whether there are multiple words
+            const guessedWordsContainer = document.getElementById('guessedWordsContainer');
+            if (allWords.length <= 1) {
+                guessedWordsContainer.style.display = 'none';
+            } else {
+                guessedWordsContainer.style.display = 'block';
             }
         }
 
@@ -620,6 +796,8 @@
             wordLength = targetWord.length; // Set word length based on target word
             createBoard();
             createKeyboard();
+            updateProgressDisplay();
+            updateGuessedWordsDisplay();
         }
     </script>
 </body>
