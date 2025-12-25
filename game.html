@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Christmas Hint Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            touch-action: manipulation;
+        }
+
+        header {
+            width: 100%;
+            max-width: 500px;
+            border-bottom: 1px solid #d3d6da;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.2rem;
+            color: #000000;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            font-weight: 400;
+            text-align: center;
+            color: #787c7e;
+            margin-bottom: 10px;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f;
+            position: absolute;
+            animation: confetti-fall 3s linear forwards;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .message {
+            height: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            color: #000000;
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-text {
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #6aaa64;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .guessed-words-container {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .guessed-words-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .guessed-words-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            min-height: 32px;
+        }
+
+        .guessed-word {
+            padding: 6px 12px;
+            background-color: #6aaa64;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .guessed-word.empty {
+            background-color: #e9ecef;
+            color: #6c757d;
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        .play-again-btn {
+            background-color: #6aaa64;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .play-again-btn:hover {
+            background-color: #5a9a54;
+        }
+
+        .board {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+
+        .tile {
+            width: 62px;
+            height: 62px;
+            border: 2px solid #d3d6da;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #000000;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+        }
+
+        .tile.filled {
+            border-color: #878a8c;
+        }
+
+        .tile.correct {
+            background-color: #6aaa64;
+            border-color: #6aaa64;
+            color: #ffffff;
+        }
+
+        .tile.present {
+            background-color: #c9b458;
+            border-color: #c9b458;
+            color: #ffffff;
+        }
+
+        .tile.absent {
+            background-color: #787c7e;
+            border-color: #787c7e;
+            color: #ffffff;
+        }
+
+        .tile.flip {
+            animation: flip 0.6s ease;
+        }
+
+        @keyframes flip {
+            0% {
+                transform: rotateX(0);
+            }
+            50% {
+                transform: rotateX(-90deg);
+            }
+            100% {
+                transform: rotateX(0);
+            }
+        }
+
+        .keyboard {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .keyboard-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .key {
+            min-width: 43px;
+            height: 58px;
+            background-color: #d3d6da;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            transition: background-color 0.1s ease;
+            touch-action: manipulation;
+        }
+
+        .key:hover {
+            background-color: #b3b6b9;
+        }
+
+        .key.wide {
+            min-width: 65px;
+        }
+
+        .key.correct {
+            background-color: #6aaa64;
+            color: #ffffff;
+        }
+
+        .key.present {
+            background-color: #c9b458;
+            color: #ffffff;
+        }
+
+        .key.absent {
+            background-color: #787c7e;
+            color: #ffffff;
+        }
+
+        @media (max-width: 600px) {
+            .tile {
+                width: 48px;
+                height: 48px;
+                font-size: 24px;
+            }
+
+            .key {
+                min-width: 32px;
+                height: 52px;
+                font-size: 12px;
+                padding: 0 8px;
+            }
+
+            .key.wide {
+                min-width: 52px;
+            }
+
+            .guessed-words-container {
+                padding: 10px;
+            }
+
+            .guessed-word {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .tile {
+                width: 42px;
+                height: 42px;
+                font-size: 20px;
+                border: 1px solid #d3d6da;
+            }
+
+            .row {
+                gap: 4px;
+            }
+
+            .board {
+                gap: 4px;
+            }
+
+            .key {
+                min-width: 28px;
+                height: 48px;
+                font-size: 11px;
+                padding: 0 6px;
+            }
+
+            .key.wide {
+                min-width: 48px;
+            }
+
+            .guessed-words-container {
+                padding: 8px;
+            }
+
+            .guessed-word {
+                padding: 3px 6px;
+                font-size: 11px;
+            }
+
+            .progress-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 id="title">WORDLE</h1>
+        <div class="subtitle">Solve the wordle and get a hint about your present's location!</div>
+    </header>
+
+    <div class="game-container">
+        <div class="message" id="message"></div>
+        <button class="play-again-btn" id="playAgainBtn">Play Again</button>
+        
+        <!-- Progress Section -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-text" id="progressText">Words guessed: 0/0</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <!-- Previously Guessed Words Section -->
+        <div class="guessed-words-container" id="guessedWordsContainer">
+            <div class="guessed-words-title">Previously Guessed Words</div>
+            <div class="guessed-words-list" id="guessedWordsList">
+                <div class="guessed-word empty">No words guessed yet</div>
+            </div>
+        </div>
+        
+        <div class="board" id="board"></div>
+        <div class="keyboard" id="keyboard"></div>
+    </div>
+
+    <script>
+        // Game state
+        let targetWord = '';
+        let currentRow = 0;
+        let currentTile = 0;
+        let gameOver = false;
+        const maxGuesses = 6;
+        let wordLength = 5; // Will be set dynamically based on target word
+        let guesses = [];
+        let letterStates = {}; // Track letter states for keyboard
+        let allWords = []; // Store all available words
+        let storageKey = ''; // Unique key for localStorage
+
+        // Generate hash from URL parameters for localStorage key
+        function getStorageKey() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedTarget = urlParams.get('target');
+            const presentId = urlParams.get('id') || 'default';
+            return `wordle-hints-${presentId}-${encodedTarget}`;
+        }
+
+        // Get solved hints from localStorage
+        function getSolvedHints() {
+            const stored = localStorage.getItem(storageKey);
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        // Save solved hint to localStorage
+        function saveSolvedHint(word) {
+            const solved = getSolvedHints();
+            if (!solved.includes(word)) {
+                solved.push(word);
+                localStorage.setItem(storageKey, JSON.stringify(solved));
+                updateProgressDisplay();
+                updateGuessedWordsDisplay();
+            }
+        }
+
+        // Update progress display
+        function updateProgressDisplay() {
+            const solvedHints = getSolvedHints();
+            const totalWords = allWords.length;
+            const solvedCount = solvedHints.length;
+            
+            const progressText = document.getElementById('progressText');
+            const progressFill = document.getElementById('progressFill');
+            
+            progressText.textContent = `Words guessed: ${solvedCount}/${totalWords}`;
+            
+            if (totalWords > 0) {
+                const percentage = (solvedCount / totalWords) * 100;
+                progressFill.style.width = `${percentage}%`;
+            } else {
+                progressFill.style.width = '0%';
+            }
+            
+            // Show/hide progress container based on whether there are multiple words
+            const progressContainer = document.getElementById('progressContainer');
+            if (totalWords <= 1) {
+                progressContainer.style.display = 'none';
+            } else {
+                progressContainer.style.display = 'block';
+            }
+        }
+
+        // Update guessed words display
+        function updateGuessedWordsDisplay() {
+            const solvedHints = getSolvedHints();
+            const guessedWordsList = document.getElementById('guessedWordsList');
+            
+            // Clear the list
+            guessedWordsList.innerHTML = '';
+            
+            if (solvedHints.length === 0) {
+                guessedWordsList.innerHTML = '<div class="guessed-word empty">No words guessed yet</div>';
+                return;
+            }
+            
+            // Add each guessed word
+            solvedHints.forEach(word => {
+                const wordElement = document.createElement('div');
+                wordElement.className = 'guessed-word';
+                wordElement.textContent = word;
+                guessedWordsList.appendChild(wordElement);
+            });
+            
+            // Show/hide guessed words container based on whether there are multiple words
+            const guessedWordsContainer = document.getElementById('guessedWordsContainer');
+            if (allWords.length <= 1) {
+                guessedWordsContainer.style.display = 'none';
+            } else {
+                guessedWordsContainer.style.display = 'block';
+            }
+        }
+
+        // Get target word from URL parameter
+        function getTargetWord() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedTarget = urlParams.get('target');
+
+            if (!encodedTarget) {
+                showMessage('No hint provided! Add ?target=base64string to URL');
+                return null;
+            }
+
+            try {
+                // Decode base64
+                const decoded = atob(encodedTarget);
+                // Split by comma and filter out empty strings
+                allWords = decoded.split(',').map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
+
+                if (allWords.length === 0) {
+                    showMessage('No valid words found!');
+                    return null;
+                }
+
+                // Get solved hints
+                const solvedHints = getSolvedHints();
+
+                // Filter for unsolved hints first
+                const unsolvedWords = allWords.filter(w => !solvedHints.includes(w));
+
+                // Pick from unsolved words if available, otherwise pick from all
+                const wordPool = unsolvedWords.length > 0 ? unsolvedWords : allWords;
+                const randomWord = wordPool[Math.floor(Math.random() * wordPool.length)];
+
+                // Validate word length (4-8 letters)
+                if (randomWord.length < 4 || randomWord.length > 8) {
+                    showMessage('Words must be 4-8 letters long!');
+                    return null;
+                }
+
+                return randomWord;
+            } catch (error) {
+                showMessage('Error decoding hint! Check your URL.');
+                return null;
+            }
+        }
+
+        // Initialize the board
+        function createBoard() {
+            const board = document.getElementById('board');
+            // Update CSS for dynamic column count
+            const rows = board.querySelectorAll('.row');
+
+            for (let i = 0; i < maxGuesses; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                row.style.gridTemplateColumns = `repeat(${wordLength}, 1fr)`;
+                for (let j = 0; j < wordLength; j++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.id = `tile-${i}-${j}`;
+                    row.appendChild(tile);
+                }
+                board.appendChild(row);
+                guesses.push('');
+            }
+        }
+
+        // Create keyboard
+        function createKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            const rows = [
+                ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+                ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+                ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACK']
+            ];
+
+            rows.forEach(row => {
+                const keyboardRow = document.createElement('div');
+                keyboardRow.className = 'keyboard-row';
+                row.forEach(key => {
+                    const button = document.createElement('button');
+                    button.className = 'key';
+                    button.textContent = key;
+                    button.id = `key-${key}`;
+
+                    if (key === 'ENTER' || key === 'BACK') {
+                        button.classList.add('wide');
+                    }
+
+                    button.addEventListener('click', () => handleKeyPress(key));
+                    keyboardRow.appendChild(button);
+                });
+                keyboard.appendChild(keyboardRow);
+            });
+        }
+
+        // Handle key press
+        function handleKeyPress(key) {
+            if (gameOver) return;
+
+            if (key === 'ENTER') {
+                submitGuess();
+            } else if (key === 'BACK') {
+                deleteLetter();
+            } else {
+                addLetter(key);
+            }
+        }
+
+        // Add letter to current guess
+        function addLetter(letter) {
+            if (currentTile < wordLength) {
+                const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
+                tile.textContent = letter;
+                tile.classList.add('filled');
+                guesses[currentRow] += letter;
+                currentTile++;
+            }
+        }
+
+        // Delete last letter
+        function deleteLetter() {
+            if (currentTile > 0) {
+                currentTile--;
+                const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
+                tile.textContent = '';
+                tile.classList.remove('filled');
+                guesses[currentRow] = guesses[currentRow].slice(0, -1);
+            }
+        }
+
+        // Submit guess
+        function submitGuess() {
+            if (currentTile < wordLength) {
+                showMessage('Not enough letters');
+                return;
+            }
+
+            const guess = guesses[currentRow];
+            const isCorrect = guess === targetWord;
+            const isLastGuess = currentRow === maxGuesses - 1;
+            const rowToCheck = currentRow; // Capture the current row before incrementing
+
+            checkGuess(guess, isCorrect, isLastGuess, rowToCheck);
+
+            if (!isCorrect && !isLastGuess) {
+                currentRow++;
+                currentTile = 0;
+            }
+        }
+
+        // Check guess and update tiles
+        function checkGuess(guess, isCorrect, isLastGuess, rowToCheck) {
+            const targetLetters = targetWord.split('');
+            const guessLetters = guess.split('');
+            const letterCount = {};
+            const result = new Array(wordLength).fill('absent');
+
+            // Count letters in target
+            targetLetters.forEach(letter => {
+                letterCount[letter] = (letterCount[letter] || 0) + 1;
+            });
+
+            // First pass: mark correct letters
+            guessLetters.forEach((letter, i) => {
+                if (letter === targetLetters[i]) {
+                    result[i] = 'correct';
+                    letterCount[letter]--;
+                }
+            });
+
+            // Second pass: mark present letters
+            guessLetters.forEach((letter, i) => {
+                if (result[i] === 'absent' && targetLetters.includes(letter) && letterCount[letter] > 0) {
+                    result[i] = 'present';
+                    letterCount[letter]--;
+                }
+            });
+
+            // Update tiles with animation
+            result.forEach((state, i) => {
+                setTimeout(() => {
+                    const tile = document.getElementById(`tile-${rowToCheck}-${i}`);
+                    tile.classList.add('flip', state);
+
+                    // Update keyboard key state
+                    const letter = guessLetters[i];
+                    updateKeyboardKey(letter, state);
+
+                    // On last tile, check for game end
+                    if (i === wordLength - 1) {
+                        setTimeout(() => {
+                            if (isCorrect) {
+                                showMessage('Correct! You found your hint!');
+                                gameOver = true;
+                                createConfetti();
+
+                                // Save to localStorage
+                                saveSolvedHint(targetWord);
+
+                                // Check if there are unsolved hints remaining
+                                const solvedHints = getSolvedHints();
+                                const unsolvedCount = allWords.filter(w => !solvedHints.includes(w)).length;
+
+                                if (unsolvedCount > 0) {
+                                    document.getElementById('playAgainBtn').style.display = 'block';
+                                }
+                            } else if (isLastGuess) {
+                                showMessage(`Game Over! The word was: ${targetWord}`);
+                                gameOver = true;
+                            }
+                        }, 500);
+                    }
+                }, i * 100);
+            });
+        }
+
+        // Update keyboard key color
+        function updateKeyboardKey(letter, state) {
+            const key = document.getElementById(`key-${letter}`);
+            if (!key) return;
+
+            // Priority: correct > present > absent
+            const currentState = letterStates[letter];
+            if (currentState === 'correct') return;
+            if (currentState === 'present' && state === 'absent') return;
+
+            letterStates[letter] = state;
+            key.classList.remove('correct', 'present', 'absent');
+            key.classList.add(state);
+        }
+
+        // Show message
+        function showMessage(msg) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = msg;
+            setTimeout(() => {
+                messageEl.textContent = '';
+            }, 3000);
+        }
+
+        // Create confetti animation
+        function createConfetti() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#ff1493'];
+            const confettiCount = 150;
+
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+
+                    // Random shapes (squares and rectangles)
+                    if (Math.random() > 0.5) {
+                        confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                        confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                    } else {
+                        confetti.style.width = (Math.random() * 15 + 5) + 'px';
+                        confetti.style.height = (Math.random() * 5 + 3) + 'px';
+                    }
+
+                    document.body.appendChild(confetti);
+
+                    // Remove confetti after animation
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }, i * 10);
+            }
+        }
+
+        // Handle physical keyboard
+        document.addEventListener('keydown', (e) => {
+            if (gameOver) return;
+
+            if (e.key === 'Enter') {
+                handleKeyPress('ENTER');
+            } else if (e.key === 'Backspace') {
+                handleKeyPress('BACK');
+            } else if (/^[a-zA-Z]$/.test(e.key)) {
+                handleKeyPress(e.key.toUpperCase());
+            }
+        });
+
+        // Play again button handler
+        document.getElementById('playAgainBtn').addEventListener('click', () => {
+            location.reload();
+        });
+
+        // Initialize game
+        const urlParams = new URLSearchParams(window.location.search);
+        const presentId = urlParams.get('id');
+
+        // Update title if ID is provided
+        if (presentId) {
+            document.getElementById('title').textContent = `Hint #${presentId}`;
+        }
+
+        // Initialize storage key
+        storageKey = getStorageKey();
+
+        targetWord = getTargetWord();
+        if (targetWord) {
+            wordLength = targetWord.length; // Set word length based on target word
+            createBoard();
+            createKeyboard();
+            updateProgressDisplay();
+            updateGuessedWordsDisplay();
+        }
+    </script>
+</body>
+</html>
